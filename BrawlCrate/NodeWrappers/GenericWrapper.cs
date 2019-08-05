@@ -1,6 +1,8 @@
-﻿using System;
+﻿using BrawlLib.SSBB.ResourceNodes;
+using System;
 using System.ComponentModel;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
 namespace BrawlCrate.NodeWrappers
@@ -18,6 +20,7 @@ namespace BrawlCrate.NodeWrappers
             _menu.Items.Add(new ToolStripMenuItem("&Export", null, ExportAction, Keys.Control | Keys.E));
             _menu.Items.Add(new ToolStripMenuItem("&Replace", null, ReplaceAction, Keys.Control | Keys.R));
             _menu.Items.Add(new ToolStripMenuItem("Res&tore", null, RestoreAction, Keys.Control | Keys.T));
+            _menu.Items.Add(new ToolStripMenuItem("Duplicate", null, DuplicateAction, Keys.Control | Keys.D));
             _menu.Items.Add(new ToolStripSeparator());
             _menu.Items.Add(new ToolStripMenuItem("Move &Up", null, MoveUpAction, Keys.Control | Keys.Up));
             _menu.Items.Add(new ToolStripMenuItem("Move D&own", null, MoveDownAction, Keys.Control | Keys.Down));
@@ -61,6 +64,11 @@ namespace BrawlCrate.NodeWrappers
         protected static void RenameAction(object sender, EventArgs e)
         {
             GetInstance<GenericWrapper>().Rename();
+        }
+
+        protected static void DuplicateAction(object sender, EventArgs e)
+        {
+            GetInstance<GenericWrapper>().Duplicate();
         }
 
         private static void MenuClosing(object sender, ToolStripDropDownClosingEventArgs e)
@@ -228,6 +236,40 @@ namespace BrawlCrate.NodeWrappers
 
             _resource.Dispose();
             _resource.Remove();
+        }
+
+        public void Duplicate()
+        {
+            if (Parent == null)
+            {
+                return;
+            }
+
+            ResourceNode node = NodeFactory.FromSource(null, Resource.WorkingSource) ?? NodeFactory.FromSource(null, Resource.OriginalSource);
+            if (node is null)
+            {
+                return;
+            }
+            if (!node.AllowDuplicateNames)
+            {
+                string r = Resource.Name;
+                string s = Regex.Match(r, "\\((\\d+)\\)$").Value;
+                int i = 1;
+                if (!string.IsNullOrEmpty(s) && int.TryParse(s.Trim('(', ')', ' '), out int d))
+                {
+                    i = d;
+                    r = r.Substring(0, r.LastIndexOf(" ", StringComparison.OrdinalIgnoreCase));
+                }
+                while (_resource.Parent.FindChildrenByName($"{node.Name}").Length > 0)
+                {
+                    node.Name = $"{r} ({i})";
+                    i++;
+                }
+            }
+            _resource.Parent.AddChild(node);
+            BaseWrapper w = ((BaseWrapper)Parent).FindResource(node, false);
+            w.EnsureVisible();
+            w.TreeView.SelectedNode = w;
         }
 
         public void Rename()
