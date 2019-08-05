@@ -238,7 +238,7 @@ namespace BrawlCrate.NodeWrappers
             _resource.Remove();
         }
 
-        public void Duplicate()
+        public virtual void Duplicate()
         {
             if (Parent == null)
             {

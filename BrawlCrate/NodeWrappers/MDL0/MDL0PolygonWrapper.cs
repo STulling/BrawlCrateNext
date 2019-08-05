@@ -46,11 +46,6 @@ namespace BrawlCrate.NodeWrappers
             GetInstance<MDL0PolygonWrapper>().Optimize();
         }
 
-        protected static void DuplicateAction(object sender, EventArgs e)
-        {
-            GetInstance<MDL0PolygonWrapper>().Duplicate();
-        }
-
         #endregion
 
         public override string ExportFilter => FileFilters.Object;
@@ -61,7 +56,7 @@ namespace BrawlCrate.NodeWrappers
             ContextMenuStrip = _menu;
         }
 
-        public void Duplicate()
+        public override void Duplicate()
         {
             MDL0ObjectNode node = ((MDL0ObjectNode) _resource).HardCopy();
             node.Name += " - Copy";
